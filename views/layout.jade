@@ -1,7 +1,11 @@
+extends ../node_modules/jade-bootstrap/_bootstrap
 doctype html
 html
   head
-    title= title
+    title My title
     link(rel='stylesheet', href='/stylesheets/style.css')
+    block head
   body
-    block content
+    #header
+    #content
+      block content
