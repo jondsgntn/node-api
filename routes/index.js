@@ -12,11 +12,16 @@ var config = {
 };
 var pool = new pg.Pool(config);
 
+var errorColoring = '\033[0;31m[ERROR]\033[0m'
+
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
+
+
+/****GET FEEDS INDEX****/
 
 router.get('/feeds', function(req, res, next) {
   var results = [];
@@ -28,7 +33,8 @@ router.get('/feeds', function(req, res, next) {
     if (err) {
       done();
       console.log(err);
-      return res.status(500).json({ success: false, data: err });
+      return res.status(500)
+        .send(err);
     }
 
     // SQL Query > Select Data
@@ -51,6 +57,7 @@ router.get('/token', function(req, res, next) {
   res.render('token', { title: 'Get an access token' });
 });
 
+
 /***CREATE USER***/
 //curl --data "name=jonathan&password=password&admin=true" http://127.0.0.1:3000/api/v1/users
 
@@ -67,30 +74,33 @@ router.post('/api/v1/users', function(req, res) {
     if (err) {
       done();
       console.log(err);
-      return res.status(500).json({ success: false, data: err });
+      return res.status(500)
+        .send(err);
     }
 
     client.query("SELECT * FROM users WHERE name=($1)", [data.name], function(err, results) {
       if (results["rowCount"] > 0) {
-        return res.status(500).json({ success: false, data: "That name is already taken!" });
-      }
-    });
+        console.log(errorColoring + " That name is already taken!\n");
+        return res.status(400)
+          .send(errorColoring + ' That name is already taken!\n');
+      } else {
+        // SQL Query > Insert Data
+        client.query("INSERT INTO users(name, password, admin) values($1, $2, $3)", [data.name, data.password, data.admin]);
 
-    // SQL Query > Insert Data
-    client.query("INSERT INTO users(name, password, admin) values($1, $2, $3)", [data.name, data.password, data.admin]);
+        // SQL Query > Select Data
+        var query = client.query("SELECT * FROM users ORDER BY id ASC");
 
-    // SQL Query > Select Data
-    var query = client.query("SELECT * FROM users ORDER BY id ASC");
+        // Stream results back one row at a time
+        query.on('row', function(row) {
+          results.push(row);
+        });
 
-    // Stream results back one row at a time
-    query.on('row', function(row) {
-      results.push(row);
-    });
-
-    // After all data is returned, close connection and return results
-    query.on('end', function() {
-      done();
-      return res.json(results);
+        // After all data is returned, close connection and return results
+        query.on('end', function() {
+          done();
+          return res.json(results);
+        });
+      };
     });
   });
 });
@@ -108,7 +118,8 @@ router.get('/api/v1/users', function(req, res) {
     if (err) {
       done();
       console.log(err);
-      return res.status(500).json({ success: false, data: err });
+      return res.status(500)
+        .send(err);
     }
 
     // SQL Query > Select Data
@@ -148,7 +159,8 @@ router.put('/api/v1/users/:user_id', function(req, res) {
         if(err) {
           done();
           console.log(err);
-          return res.status(500).send(json({ success: false, data: err}));
+          return res.status(500)
+            .send(err);
         }
 
         // SQL Query > Update Data
@@ -189,7 +201,8 @@ router.delete('/api/v1/users/:user_id', function(req, res) {
     if (err) {
       done();
       console.log(err);
-      return res.status(500).json({ success: false, data: err });
+      return res.status(500)
+        .send(err);
     }
 
     // SQL Query > Delete Data
@@ -230,14 +243,18 @@ router.post('/get_token', function(req, res) {
     if (err) {
       done();
       console.log(err);
-      return res.status(500).json({ success: false, data: err });
+      return res.status(500)
+        .send(err);
     }
 
     client.query("UPDATE users SET token=($1) WHERE name=($2) AND password=($3)", [token, data.name, data.password], function(err, results) {
       if (results["rowCount"] > 0) {
-        return res.status(200).json({ success: true, data: token });
+        return res.status(200)
+          .send(token);
       } else {
-        return res.status(500).json({ success: false, data: "You've ruined the act, Gob.." });
+        console.log(errorColoring + " Invalid Credentials\n");
+        return res.status(400)
+          .send(errorColoring + " Invalid Credentials\n");
       }
     });
 
@@ -264,30 +281,33 @@ router.post('/api/v1/feeds', function(req, res) {
     if (err) {
       done();
       console.log(err);
-      return res.status(500).json({ success: false, data: err });
+      return res.status(500)
+        .send(err);
     }
 
     client.query("SELECT * FROM feeds WHERE url=($1)", [data.url], function(err, results) {
       if (results["rowCount"] > 0) {
-        return res.status(500).json({ success: false, data: "That feed already exists!" });
-      }
-    });
+        console.log(errorColoring + ' That RSS feed already exists in the database\n')
+        return res.status(400)
+          .send(errorColoring + ' That RSS feed already exists in the database\n');
+      } else {
+        // SQL Query > Insert Data
+        client.query("INSERT INTO feeds(name, url, twitter) values($1, $2, $3)", [data.name, data.url, data.twitter]);
 
-    // SQL Query > Insert Data
-    client.query("INSERT INTO feeds(name, url, twitter) values($1, $2, $3)", [data.name, data.url, data.twitter]);
+        // SQL Query > Select Data
+        var query = client.query("SELECT * FROM feeds ORDER BY id ASC");
 
-    // SQL Query > Select Data
-    var query = client.query("SELECT * FROM feeds ORDER BY id ASC");
+        // Stream results back one row at a time
+        query.on('row', function(row) {
+          results.push(row);
+        });
 
-    // Stream results back one row at a time
-    query.on('row', function(row) {
-      results.push(row);
-    });
-
-    // After all data is returned, close connection and return results
-    query.on('end', function() {
-      done();
-      return res.json(results);
+        // After all data is returned, close connection and return results
+        query.on('end', function() {
+          done();
+          return res.json(results);
+        });
+      };
     });
   });
 });
@@ -305,7 +325,8 @@ router.get('/api/v1/feeds', function(req, res) {
     if (err) {
       done();
       console.log(err);
-      return res.status(500).json({ success: false, data: err });
+      return res.status(500)
+        .send(err);
     }
 
     // SQL Query > Select Data
@@ -345,7 +366,8 @@ router.put('/api/v1/feeds/:feed_id', function(req, res) {
         if(err) {
           done();
           console.log(err);
-          return res.status(500).send(json({ success: false, data: err}));
+          return res.status(500)
+            .send(err);
         }
 
         // SQL Query > Update Data
@@ -369,7 +391,7 @@ router.put('/api/v1/feeds/:feed_id', function(req, res) {
 });
 
 
-/****DELETE USER****/
+/****DELETE FEED****/
 //curl -X DELETE http://127.0.0.1:3000/api/v1/feeds/3
 
 router.delete('/api/v1/feeds/:feed_id', function(req, res) {
@@ -386,7 +408,8 @@ router.delete('/api/v1/feeds/:feed_id', function(req, res) {
     if (err) {
       done();
       console.log(err);
-      return res.status(500).json({ success: false, data: err });
+      return res.status(500)
+        .send(err);
     }
 
     // SQL Query > Delete Data

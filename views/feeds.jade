@@ -1,70 +1,21 @@
-extend layout
+extends layout
 block body
-  include header
-    .container-fluid
-      .row
-        .col-sm-3.col-md-2.sidebar
-          ul.nav.nav-sidebar
-            li.active
-              a(href='#')
-                | Overview 
-                span.sr-only (current)
-            li
-              a(href='#') Reports
-            li
-              a(href='#') Analytics
-            li
-              a(href='#') Export
-          ul.nav.nav-sidebar
-            li
-              a(href='') Nav item
-            li
-              a(href='') Nav item again
-            li
-              a(href='') One more nav
-            li
-              a(href='') Another nav item
-            li
-              a(href='') More navigation
-          ul.nav.nav-sidebar
-            li
-              a(href='') Nav item again
-            li
-              a(href='') One more nav
-            li
-              a(href='') Another nav item
-        .col-sm-9.col-sm-offset-3.col-md-10.col-md-offset-2.main
-          h1.page-header Dashboard
-          .row.placeholders
-            .col-xs-6.col-sm-3.placeholder
-              img.img-responsive(src='../node_modules/jade-bootstrap/images/dashboard_blue.jpg', alt='Generic placeholder thumbnail')
-              h4 Label
-              span.text-muted Something else
-            .col-xs-6.col-sm-3.placeholder
-              img.img-responsive(src='../node_modules/jade-bootstrap/images/dashboard_green.jpg', alt='Generic placeholder thumbnail')
-              h4 Label
-              span.text-muted Something else
-            .col-xs-6.col-sm-3.placeholder
-              img.img-responsive(src='../node_modules/jade-bootstrap/images/dashboard_blue.jpg', alt='Generic placeholder thumbnail')
-              h4 Label
-              span.text-muted Something else
-            .col-xs-6.col-sm-3.placeholder
-              img.img-responsive(src='../node_modules/jade-bootstrap/images/dashboard_green.jpg', alt='Generic placeholder thumbnail')
-              h4 Label
-              span.text-muted Something else
-          h2.sub-header RSS Feeds
-          .table-responsive
-            table.table.table-striped
-              thead
-                tr
-                  th
-                  th NAME
-                  th URL
-                  th TWITTER
-              tbody
-              for feed in feeds
-                tr
-                  td #{feed.id}
-                  td #{feed.name}
-                  td: a(href="#{feed.url}" target="_blank") #{feed.url}
-                  td @#{feed.twitter}
+  .page-header
+    h1 RSS Feeds
+  .row
+    .col-md-12
+      .table-responsive
+          table.table.table-striped
+            thead
+              tr
+                th
+                th NAME
+                th URL
+                th TWITTER
+            tbody
+            for feed in feeds
+              tr
+                td #{feed.id}
+                td #{feed.name}
+                td: a(href="#{feed.url}" target="_blank") #{feed.url}
+                td @#{feed.twitter}
